@@ -18,7 +18,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._init_ui()
 
     def _init_ui(self):
-        ...
+        self._refresh_map()
 
     def _refresh_map(self) -> None:
         image_data = get_map(ll=self._map_ll, zoom=self._map_zoom, map_type=self._map_l)
