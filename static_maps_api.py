@@ -10,6 +10,7 @@ def get_map(*, ll: tuple[float, float], spn: tuple[float, float], map_type: str,
     })
     if pt is not None:
         params['pt'] = ','.join(map(str, pt)) if isinstance(pt, tuple) else pt
+    response = requests.get('')
 
     if not response:
         raise RuntimeError(
