@@ -1,0 +1,3 @@
+def find_nearest_organization(ll: tuple[float, float], span: tuple[float, float],
+                              organization_type: str) -> None:
+    ...

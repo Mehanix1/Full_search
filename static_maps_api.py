@@ -1,13 +1,15 @@
 import requests
 
 
-def get_map(*, ll: tuple[float, float], spn: tuple[float, float], map_type: str, **kwarg: tuple[float, float]) -> str:
-    response = requests.get('http://static-maps.yandex.ru/1.x/', params={
+def get_map(*, ll: tuple[float, float], spn: tuple[float, float], map_type: str,
+            pt: tuple[object, ...] | str = None) -> str:
+    params = requests.get('http://static-maps.yandex.ru/1.x/', params={
         'll': ','.join(map(str, ll)),
         'spn': ','.join(map(str, spn)),
         'l': map_type,
-        **{key: ','.join(map(str, value)) for key, value, in kwarg.items()}
     })
+    if pt is not None:
+        params['pt'] = ','.join(map(str, pt)) if isinstance(pt, tuple) else pt
 
     if not response:
         raise RuntimeError(

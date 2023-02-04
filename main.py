@@ -1,12 +1,12 @@
-import os
 from sys import argv
-import pygame
+from textwrap import dedent
 
+from search_maps_api import find_nearest_organization
 from geocoder_api import (
     get_coordinates,
-    get_coordinates_and_span,
 )
-from static_maps_api import get_map
+from show_map import show_map
+from find_distance import find_distance
 
 
 def main() -> None:
@@ -16,30 +16,35 @@ def main() -> None:
         print('No data')
         return
 
-    # Показываем карту с фиксированным масштабом.
+    # Получаем координаты ближайшей аптеки.
     lat, lon = get_coordinates(toponym_to_find)
-    show_map(ll=(lat, lon), spn=(0.005, 0.005), map_type='map')
+    organization = find_nearest_organization(ll=(lat, lon), span=(0.005, 0.005),
+                                             organization_type='аптека')
+    org_lat, org_lon = map(float, organization['geometry']['coordinates'])
+    show_map(ll=(lat, lon), spn=(0.005, 0.005), map_type='map', pt=(org_lat, org_lon, 'pm2dgl'))
 
-    # Показываем карту с масштабом, подобранным по заданному объекту.
-    (lat, lon), (dx, dy) = get_coordinates_and_span(toponym_to_find)
-    show_map(ll=(lat, lon), spn=(dx, dy), map_type='map')
+    # Добавляем на карту точку с исходным адресом.
+    show_map(ll=(lat, lon), spn=(0.005, 0.005), map_type='map',
+             pt=f'{org_lat},{org_lon},pm2dgl~{lat},{lon},pm2rdl')
 
+    # Автопозиционирование
+    show_map(spn=(0.005, 0.005), map_type='map',
+             pt=f'{org_lat},{org_lon},pm2dgl~{lat},{lon},pm2rdl')
 
-def show_map(*, ll: tuple[float, float], spn: tuple[float, float], map_type: str,
-             **kwargs: tuple[float, float]) -> None:
-    map_filename = get_map(ll=ll, spn=spn, map_type=map_type, **kwargs)
-    # Инициализируем pygame
-    pygame.init()
-    screen = pygame.display.set_mode((600, 450))
-    # Рисуем картинку, загружаемую из только что созданного файла.
-    screen.blit(pygame.image.load(map_filename), (0, 0))
-    # Переключаем экран и ждем закрытия окна.
-    pygame.display.flip()
-    while pygame.event.wait().type != pygame.QUIT:
-        pass
-    pygame.quit()
-    # Удаляем за собой файл с изображением.
-    os.remove(map_filename)
+    metadata = organization['properties']['CompanyMetaData']
+    # Название организации.
+    name = metadata['name']
+    # Адрес организации.
+    address = metadata['address']
+    # Время работы
+    time = metadata['Hours']['text']
+    # Расстояние
+    distance = round(find_distance((lon, lat), (org_lon, org_lat)))
+    print(dedent(f'''\
+        Название:\t{name}
+        Адрес:\t{address}
+        Время работы:\t{time}
+        Расстояние:\t{distance}м.'''))
 
 
 main()

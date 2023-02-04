@@ -1,5 +1,7 @@
 import requests
 
+from config import GEOCODER_API_KEY
+
 
 def get_coordinates(address: str) -> tuple[float | None, float | None]:
     toponym = geocoder_request(address)
@@ -13,7 +15,8 @@ def get_coordinates(address: str) -> tuple[float | None, float | None]:
     return toponym_longitude, toponym_lattitude
 
 
-def get_coordinates_and_span(address: str) -> tuple[tuple[float | None, float | None], tuple[float | None, float | None]]:
+def get_coordinates_and_span(address: str) -> tuple[
+    tuple[float | None, float | None], tuple[float | None, float | None]]:
     toponym = geocoder_request(address)
     if toponym is None:
         return (None, None), (None, None)
@@ -35,13 +38,10 @@ def get_coordinates_and_span(address: str) -> tuple[tuple[float | None, float | 
     return (toponym_longitude, toponym_lattitude), (dx, dy)
 
 
-API_KEY = '40d1649f-0493-4b70-98ba-98533de7710b'
-
-
 def geocoder_request(address: str) -> dict | None:
     # Выполняем запрос.
     response = requests.get('http://geocode-maps.yandex.ru/1.x/', params={
-        'apikey': API_KEY,
+        'apikey': GEOCODER_API_KEY,
         'geocode': address,
         'format': 'json',
     })
